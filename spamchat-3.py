@@ -58,6 +58,7 @@ class main(QWidget):
         self.stack.setCurrentIndex(6)
         
     def connc(self):
+        self.chatwidget.get_msg()
         self.chatwidget.starttimer()
         self.stack.setCurrentIndex(1)
         
