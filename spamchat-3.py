@@ -73,11 +73,11 @@ class main(QWidget):
         
     def chat(self):
         self.serverwidget.startanim()
-        if os.path.isfile("user.txt") and os.path.isfile("id.txt"):
-            dateieiei = open("user.txt", "r")
+        if os.path.isfile("user.sc") and os.path.isfile("id.sc"):
+            dateieiei = open("user.sc", "r")
             user2 = dateieiei.read()
             dateieiei.close()
-            dateieiei = open("id.txt", "r")
+            dateieiei = open("id.sc", "r")
             id2 = dateieiei.read()
             dateieiei.close()
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
@@ -94,8 +94,8 @@ class main(QWidget):
                 MessageDialog("Fehler!", "Es ist ein Fehler aufgetreten. Du konntest nicht angemeldet werden." + str(id) + "%" + str(id2))
                 self.reg()
                 try:
-                    os.remove("id.txt")
-                    os.remove("user.txt")
+                    os.remove("id.sc")
+                    os.remove("user.sc")
                 except:
                     pass
         else:
@@ -268,15 +268,15 @@ class Server(QWidget):
         self.anim.setDuration(2000)
         
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
             main.stack.setCurrentIndex(0)
         
         self.listWidget = QListWidget()
-        if os.path.isfile("server.txt"):
-            datei = open("server.txt")
+        if os.path.isfile("server.sc"):
+            datei = open("server.sc")
             server = datei.read()
             datei.close()
             serverlist = server.split("%ghg%")
@@ -333,14 +333,14 @@ class Server(QWidget):
         
     def checkban(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
             self.user = "none"
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         chats = deta.Drive("spamchats-bans")
-        invs = chats.get(self.user + ".txt")
+        invs = chats.get(self.user + ".sc")
         try:
             invis = invs.read().decode('utf_8')
         except:
@@ -348,39 +348,39 @@ class Server(QWidget):
         invis = invis.split("%ghg%")
         for item in invis:
             if item != "":
-                datei = open("server.txt", "r")
+                datei = open("server.sc", "r")
                 self.serverlist = datei.read().split("%ghg%")
                 datei.close()
-                MessageDialog("info", "Du wurdest vom Server " + item.replace(".txt", "") + " gebannt.")
-                self.serverlist.remove(item.replace(".txt", ""))
+                MessageDialog("info", "Du wurdest vom Server " + item.replace(".sc", "") + " gebannt.")
+                self.serverlist.remove(item.replace(".sc", ""))
                 try:
-                    os.remove("server.txt")
+                    os.remove("server.sc")
                 except:
                     pass
-                datei = open("server.txt", "a")
+                datei = open("server.sc", "a")
                 for srv in self.serverlist:
                     datei.write("%ghg%" + srv)
             self.actuserver()
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             chats = deta.Drive("spamchats-bans")
-            chats.delete(self.user + ".txt")
+            chats.delete(self.user + ".sc")
         
     def checkserver(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
             self.user = "none"
         try:
-            datei = open("id.txt", "r")
+            datei = open("id.sc", "r")
             self.id = int(datei.read())
             datei.close()
         except:
             self.id = 0
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         chats = deta.Drive("spamchats-invitations")
-        invs = chats.get(self.user +"/" + str(self.id) + ".txt")
+        invs = chats.get(self.user +"/" + str(self.id) + ".sc")
         try:
             invis = invs.read().decode('utf_8')
         except:
@@ -388,39 +388,39 @@ class Server(QWidget):
         invis = invis.split("%ghg%")
         for item in invis:
             if item != "":
-                item = item.replace(".txt", "")
-                datei = open("server.txt", "a")
+                item = item.replace(".sc", "")
+                datei = open("server.sc", "a")
                 datei.write("%ghg%" + item)
                 datei.close()
                 deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
                 chats = deta.Drive("spamchats")
-                chat = chats.get(item + ".txt")
+                chat = chats.get(item + ".sc")
                 try:
                     content = chat.read()
                     chat.close()
-                    chats.put(item + ".txt", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
+                    chats.put(item + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
                 except:
                     content = b""
                     print(content)
-                    chats.put(item + ".txt", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
+                    chats.put(item + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
                 chats = deta.Drive("spamchats-info")
-                chat = chats.get(item + ".txt")
+                chat = chats.get(item + ".sc")
                 try:
                     content = chat.read()
                     chat.close()
-                    chats.put(item + ".txt", content + b"%ghg%" + self.user.encode('utf_8'))
+                    chats.put(item + ".sc", content + b"%ghg%" + self.user.encode('utf_8'))
                 except:
                     content = b""
                     print(content)
-                    chats.put(item + ".txt", content + self.user.encode('utf_8'))
+                    chats.put(item + ".sc", content + self.user.encode('utf_8'))
             self.actuserver()
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             chats = deta.Drive("spamchats-invitations")
-            chats.delete(self.user +"/" + str(self.id) + ".txt")
+            chats.delete(self.user +"/" + str(self.id) + ".sc")
         
     def joinserver(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -430,36 +430,36 @@ class Server(QWidget):
         if nameok and idok:
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             chats = deta.Drive("spamchats-ids")
-            chat = chats.get(name + ".txt")
+            chat = chats.get(name + ".sc")
             try:
                 content = chat.read()
                 chat.close()
                 if content.decode('utf_8') == id:
                     name.replace("%ghg%", "%ghg/%")
-                    datei = open("server.txt", "a")
+                    datei = open("server.sc", "a")
                     datei.write("%ghg%" + name)
                     datei.close()
                     deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
                     chats = deta.Drive("spamchats")
-                    chat = chats.get(name + ".txt")
+                    chat = chats.get(name + ".sc")
                     try:
                         content = chat.read()
                         chat.close()
-                        chats.put(name + ".txt", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
+                        chats.put(name + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
                     except:
                         content = b""
                         print(content)
-                        chats.put(name + ".txt", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
+                        chats.put(name + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
                     chats = deta.Drive("spamchats-info")
-                    chat = chats.get(name + ".txt")
+                    chat = chats.get(name + ".sc")
                     try:
                         content = chat.read()
                         chat.close()
-                        chats.put(name + ".txt", content + b"%ghg%" + self.user.encode('utf_8'))
+                        chats.put(name + ".sc", content + b"%ghg%" + self.user.encode('utf_8'))
                     except:
                         content = b""
                         print(content)
-                        chats.put(name + ".txt", content + self.user.encode('utf_8'))
+                        chats.put(name + ".sc", content + self.user.encode('utf_8'))
                     self.actuserver()
                 else:
                     MessageDialog("ERROR", "Falscher Server-Name oder ID.")
@@ -468,7 +468,7 @@ class Server(QWidget):
         
     def newserver(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -478,60 +478,60 @@ class Server(QWidget):
             text = text.replace("%ghg%", "%ghg/%")
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             chats = deta.Drive("spamchats")
-            chat = chats.get(text + ".txt")
+            chat = chats.get(text + ".sc")
             try:
                 content = chat.read()
                 chat.close()
                 MessageDialog("Fehler", "Der Server existiert schon. Wenn du ihm beitreten willst, klicke im Menü auf Server beitreten.")
             except:
-                datei = open("server.txt", "a")
+                datei = open("server.sc", "a")
                 datei.write("%ghg%" + text)
                 datei.close()
                 
                 content = b""
                 print(content)
-                chats.put(text + ".txt", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
+                chats.put(text + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
             
                 chats = deta.Drive("spamchats-info")
-                chat = chats.get(text + ".txt")
+                chat = chats.get(text + ".sc")
                 try:
                     content = chat.read()
                     chat.close()
-                    chats.put(text + ".txt", content + b"%ghg%" + self.user.encode('utf_8'))
+                    chats.put(text + ".sc", content + b"%ghg%" + self.user.encode('utf_8'))
                 except:
                     content = b""
                     print(content)
-                    chats.put(text + ".txt", content + self.user.encode('utf_8'))
+                    chats.put(text + ".sc", content + self.user.encode('utf_8'))
                     
                 chats = deta.Drive("spamchats-admins")
-                chat = chats.get(text + ".txt")
+                chat = chats.get(text + ".sc")
                 try:
                     content = chat.read()
                     chat.close()
-                    chats.put(text + ".txt", content + b"%ghg%" + self.user.encode('utf_8'))
+                    chats.put(text + ".sc", content + b"%ghg%" + self.user.encode('utf_8'))
                 except:
                     content = b""
                     print(content)
-                    chats.put(text + ".txt", content + self.user.encode('utf_8'))
+                    chats.put(text + ".sc", content + self.user.encode('utf_8'))
             
                 chats = deta.Drive("spamchats-ids")
-                chat = chats.get(text + ".txt")
+                chat = chats.get(text + ".sc")
                 chr="0123456789"
                 id = "".join(random.choices(chr,k=5))
-                chats.put(text + ".txt", str(id))
+                chats.put(text + ".sc", str(id))
                 MessageDialog("Info", "Deine Server-ID ist: " + str(id) + ". Gib die Server-ID nur Personen, die dem Server beitreten sollen.")
                 self.actuserver()
             
     def actuserver(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
             self.user = "none"
         self.listWidget.clear()
-        if os.path.isfile("server.txt"):
-            datei = open("server.txt")
+        if os.path.isfile("server.sc"):
+            datei = open("server.sc")
             server = datei.read()
             datei.close()
             serverlist = server.split("%ghg%")
@@ -545,7 +545,7 @@ class Server(QWidget):
         
     def connectserver(self, item):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -553,11 +553,11 @@ class Server(QWidget):
         serv = item.text()
         MessageDialog("Info", "verbinden mit " + serv + "...")
         try:
-            os.remove("actu.txt")
+            os.remove("actu.sc")
         except:
             pass
-        datei = open("actu.txt", "a")
-        datei.write(serv + ".txt")
+        datei = open("actu.sc", "a")
+        datei.write(serv + ".sc")
         datei.close()
         main.connc(self.main)
         
@@ -891,7 +891,7 @@ class Maze(QWidget):
                                              """)
                                              
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -1112,10 +1112,10 @@ class Register(QWidget):
             MessageDialog("Kein Internet!", "Bist du mit dem Internet verbunden? Vielleicht ist der Username auch schon vergeben.")
             rigi = 0
         if rigi == 1:
-            dateieiei = open("user.txt", "a")
+            dateieiei = open("user.sc", "a")
             dateieiei.write(us)
             dateieiei.close()
-            dateieiei = open("id.txt", "a")
+            dateieiei = open("id.sc", "a")
             dateieiei.write(id)
             dateieiei.close()
             main.chat(self.main)
@@ -1201,7 +1201,7 @@ class MainWindow(QMainWindow):
         # Layout the UI
         l = QGridLayout()
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -1209,9 +1209,9 @@ class MainWindow(QMainWindow):
         self.firsttime = True
         self.oldcom = False
         self.main = main
-        self.server = "none.txt"
+        self.server = "none.sc"
         try:
-            os.remove("actu.txt")
+            os.remove("actu.sc")
         except:
             pass
             
@@ -1230,7 +1230,7 @@ class MainWindow(QMainWindow):
                                              """)
         
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -1332,8 +1332,8 @@ class MainWindow(QMainWindow):
                     serverid = content.decode('utf_8')
                 except:
                     serverid = ""
-                datei = open("actu.txt", "r")
-                MessageDialog("info", "Aktueller Server: " + datei.read().replace(".txt", "") + "\nID:" + serverid + "\nUser: " + str(listofuser))
+                datei = open("actu.sc", "r")
+                MessageDialog("info", "Aktueller Server: " + datei.read().replace(".sc", "") + "\nID:" + serverid + "\nUser: " + str(listofuser))
                 datei.close()
             except:
                 MessageDialog("ERROR", "Der Befehl \"" + msg + "\" konnte nicht aufgeführt werden.")
@@ -1379,13 +1379,13 @@ class MainWindow(QMainWindow):
             if self.user in content:
                 name = list[1]
                 chats = deta.Drive("spamchats-bans")
-                invs = chats.get(name + ".txt")
+                invs = chats.get(name + ".sc")
                 try:
                     invis = invs.read()
                 except:
                     invis = b""
-                datei = open("actu.txt", "r")
-                chats.put(name + ".txt", invis + b"%ghg%" + datei.read().encode('utf_8'))
+                datei = open("actu.sc", "r")
+                chats.put(name + ".sc", invis + b"%ghg%" + datei.read().encode('utf_8'))
                 datei.close()
                 MessageDialog("info", "Du hast " + name + " gebannt.")
             else:
@@ -1411,13 +1411,13 @@ class MainWindow(QMainWindow):
             if self.user in content:
                 name = list[1]
                 chats = deta.Drive("spamchats-invitations")
-                invs = chats.get(name + ".txt")
+                invs = chats.get(name + ".sc")
                 try:
                     invis = invs.read()
                 except:
                     invis = b""
-                datei = open("actu.txt", "r")
-                chats.put(name + ".txt", invis + b"%ghg%" + datei.read().encode('utf_8'))
+                datei = open("actu.sc", "r")
+                chats.put(name + ".sc", invis + b"%ghg%" + datei.read().encode('utf_8'))
                 datei.close()
                 MessageDialog("info", "Du hast " + name + " eingeladen.")
             else:
@@ -1439,17 +1439,17 @@ class MainWindow(QMainWindow):
         
     def setup_msg(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
             self.user = "none"
         try:
-            datei = open("actu.txt", "r")
+            datei = open("actu.sc", "r")
             self.server = datei.read()
             datei.close()
         except:
-            self.server = "none.txt"
+            self.server = "none.sc"
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         chats = deta.Drive("spamchats")
         chat = chats.get(self.server)
@@ -1474,17 +1474,17 @@ class MainWindow(QMainWindow):
 
     def get_msg(self):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
             self.user = "none"
         try:
-            datei = open("actu.txt", "r")
+            datei = open("actu.sc", "r")
             self.server = datei.read()
             datei.close()
         except:
-            self.server = "none.txt"
+            self.server = "none.sc"
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         
         chats = deta.Drive("spamchats")
@@ -1504,7 +1504,7 @@ class MainWindow(QMainWindow):
 
     def write_msg(self, msg, user, repl=False):
         try:
-            datei = open("user.txt", "r")
+            datei = open("user.sc", "r")
             self.user = datei.read()
             datei.close()
         except:
@@ -1520,11 +1520,11 @@ class MainWindow(QMainWindow):
             MessageDialog("Kein Internet!", "Ein Fehler ist aufgetreten. Dein Spamscore kann nicht aktualisiert werden.")
             spc = "0"
         try:
-            datei = open("actu.txt", "r")
+            datei = open("actu.sc", "r")
             self.server = datei.read()
             datei.close()
         except:
-            self.server = "none.txt"
+            self.server = "none.sc"
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         chats = deta.Drive("spamchats")
         data = chats.get(self.server)
