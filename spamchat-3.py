@@ -381,7 +381,7 @@ class Server(QWidget):
             self.id = 0
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         chats = deta.Drive("spamchats-invitations")
-        invs = chats.get(self.user +"/" + str(self.id) + ".sc")
+        invs = chats.get(self.user + ".sc")
         try:
             invis = invs.read().decode('utf_8')
         except:
@@ -417,7 +417,7 @@ class Server(QWidget):
             self.actuserver()
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             chats = deta.Drive("spamchats-invitations")
-            chats.delete(self.user +"/" + str(self.id) + ".sc")
+            chats.delete(self.user + ".sc")
         
     def joinserver(self):
         try:
