@@ -1157,7 +1157,9 @@ class MessageDelegate(QStyledItemDelegate):
 
         # draw the text
         painter.setPen(Qt.black)
-        painter.drawText(textrect, Qt.TextWordWrap, text)
+        self.text_side_offset, self.text_top_offset = 50, 15
+        text_margins = QMargins(self.text_side_offset, self.text_top_offset, self.text_side_offset, self.text_top_offset)
+        painter.drawText(option.rect.marginsRemoved(text_margins), Qt.AlignVCenter | Qt.TextWordWrap, text)
 
     def sizeHint(self, option, index):
         _, text = index.model().data(index, Qt.DisplayRole)
