@@ -1106,7 +1106,7 @@ class Register(QWidget):
         try:
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             users = deta.Base("spamchat")
-            users.insert({"key": us, "id": id, "level": "0", "spamscore": "0", "rickroll": "0"})
+            users.insert({"key": us, "id": id, "level": "0", "spamscore": "0"})
             MessageDialog("Fertig", "Fertig! Du kannst jetzt Nachrichten senden. Deine ID ist: " + str(id))
             rigi = 1
         except:
@@ -1220,17 +1220,15 @@ class MainWindow(QMainWindow):
         except:
             pass
             
-        back = QPushButton("\nZurück\n")
+        back = QPushButton("\n\n")
         back.clicked.connect(main.chat)
         back.setFont(QFont("Macondo", 20))
+        back.setIcon(QIcon("back.png"))
+        back.setIconSize(QSize(50, 50))
         back.setStyleSheet("""*{
                                              font-weight: bold;
-                                             border: 5px solid #34dbeb;
-                                             border-radius: 30px;
+                                             border: None;
                                              padding: -25px;
-                                             }
-                                             *:hover{
-                                             background: #34dbeb;
                                              }
                                              """)
         
@@ -1257,7 +1255,13 @@ class MainWindow(QMainWindow):
         self.message_input.setPlaceholderText("Nachricht")
 
         # Buttons for from/to messages.
-        self.btn1 = QPushButton("\nsenden!\n")
+        self.btn1 = QPushButton("\n\n")
+        self.btn1.setIcon(QIcon("send.png"))
+        self.btn1.setIconSize(QSize(50, 50))
+        
+        self.acse = QLabel()
+        self.acse.setAlignment(Qt.AlignCenter)
+        self.acse.setFont(QFont("Macondo", 30))
 
         self.messages = QListView()
         self.messages.setFont(QFont("Macondo", 20))
@@ -1273,12 +1277,8 @@ class MainWindow(QMainWindow):
         self.btn1.setFont(QFont("Macondo", 20))
         self.btn1.setStyleSheet("""*{
                                              font-weight: bold;
-                                             border: 5px solid #34dbeb;
-                                             border-radius: 30px;
+                                             border: None;
                                              padding: -25px;
-                                             }
-                                             *:hover{
-                                             background: #34dbeb;
                                              }
                                              """)
         
@@ -1289,10 +1289,11 @@ class MainWindow(QMainWindow):
         #self.check.start(1000)
         
         l.addWidget(back, 0, 0)
-        l.addWidget(self.sppc, 0, 1)
-        l.addWidget(self.messages, 1, 0, 1, 2)
-        l.addWidget(self.message_input, 2, 0, 2, 2)
-        l.addWidget(self.btn1, 4, 0, 4, 2)
+        l.addWidget(self.acse, 0, 1)
+        l.addWidget(self.sppc, 0, 3)
+        l.addWidget(self.messages, 1, 0, 1, 4)
+        l.addWidget(self.message_input, 2, 0, 2, 3)
+        l.addWidget(self.btn1, 2, 3)
 
         self.w = QWidget()
         self.w.setLayout(l)
@@ -1396,13 +1397,6 @@ class MainWindow(QMainWindow):
             else:
                 MessageDialog("ERROR", "Nur Admins können andere Personen bannen.")
                 
-        elif msg.startswith("!RickRoll"):
-            deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
-            users = deta.Base("spamchat")
-            user = users.get(list[1])
-            spc = str(user["rickroll"])
-            users.update({"rickroll": str(int(spc) + 1)}, list[1])
-                
         elif msg.startswith("!invite"):
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             chats = deta.Drive("spamchats-admins")
@@ -1491,6 +1485,8 @@ class MainWindow(QMainWindow):
         except:
             self.server = "none.sc"
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        
+        self.acse.setText(str(self.server)[:-3])
         
         chats = deta.Drive("spamchats")
         chat = chats.get(self.server)
