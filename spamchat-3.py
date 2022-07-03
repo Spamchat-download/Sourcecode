@@ -1157,7 +1157,7 @@ class MessageDelegate(QStyledItemDelegate):
 
         # draw the text
         painter.setPen(Qt.black)
-        self.text_side_offset, self.text_top_offset = 50, 15
+        self.text_side_offset, self.text_top_offset = 50, 5
         text_margins = QMargins(self.text_side_offset, self.text_top_offset, self.text_side_offset, self.text_top_offset)
         painter.drawText(option.rect.marginsRemoved(text_margins), Qt.AlignVCenter | Qt.TextWordWrap, text)
 
@@ -1165,9 +1165,11 @@ class MessageDelegate(QStyledItemDelegate):
         _, text = index.model().data(index, Qt.DisplayRole)
         # Calculate the dimensions the text will require.
         metrics = QApplication.fontMetrics()
-        rect = option.rect.marginsRemoved(TEXT_PADDING)
+        self.text_side_offset, self.text_top_offset = 50, 20
+        text_margins = QMargins(self.text_side_offset, self.text_top_offset, self.text_side_offset, self.text_top_offset)
+        rect = option.rect.marginsRemoved(text_margins)
         rect = metrics.boundingRect(rect, Qt.TextWordWrap, text)
-        rect = rect.marginsAdded(TEXT_PADDING)  # Re add padding for item size.
+        rect = rect.marginsAdded(text_margins)  # Re add padding for item size.
         return rect.size()
 
 
