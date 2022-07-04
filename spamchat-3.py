@@ -6,6 +6,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from deta import Deta
 from functools import partial
+from PIL import Image, ImageDraw
+from PIL.ImageQt import ImageQt
 
 USER_ME = 0
 USER_THEM = 1
@@ -110,6 +112,61 @@ class QLabelclick(QLabel):
     def mouseReleaseEvent(self, event):
         main.maze(self.main)
         
+class profilepic():
+    def generatepp():
+        w, h = 1000, 1000
+        img = Image.new("RGB", (w, h), color="grey")
+        img1 = ImageDraw.Draw(img)
+        chars = '0123456789ABCDEF'
+        col = '#'+''.join(random.sample(chars,6))
+        edgs = col
+        for z in range(0, 15):
+            x = random.randint(1, 10)
+            y = random.randint(1, 10)
+            edgs =  edgs + "%ghg%" + str(x) + "," + str(y)
+        return edgs
+        
+    def add_corners(im, rad):
+        circle = Image.new('L', (rad * 2, rad * 2), 0)
+        draw = ImageDraw.Draw(circle)
+        draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
+        alpha = Image.new('L', im.size, 255)
+        w, h = im.size
+        alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+        alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+        alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+        alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+        im.putalpha(alpha)
+        return im
+    
+    def getpp(edgs):
+        w, h = 1000, 1000
+        img = Image.new("RGB", (w, h), color="grey")
+        img1 = ImageDraw.Draw(img)
+        edgs = edgs.split("%ghg%")
+        for t in edgs:
+            ab = t.split(",")
+            try:
+                x, y = ab
+                x = int(x)
+                y = int(y)
+            except:
+                x, y = 0, 0
+                col = ab[0]
+            shape = [(x * 100 - 100), (y * 100 - 100), (x * 100), (y * 100)]
+            print(ab)
+            print(shape)
+            print(col)
+            img1.rectangle(shape, fill=col)
+        img = profilepic.add_corners(img, 100)
+        #img.save('pp.png')
+        return img
+        
+    def getqt(img):
+        qim = ImageQt(img)
+        pix = QPixmap.fromImage(qim)
+        return(pix)
+        
 class PreLoader(QWidget):
     def __init__(self, main, parent=None):
         super().__init__(parent)
@@ -173,22 +230,25 @@ class Ranking(QWidget):
         self.main = main
         
         self.list = QListWidget()
-        ly.addWidget(self.list, 1, 1)
+        self.list.setIconSize(QSize(100, 100))
+        self.list.setFont(QFont("Macondo", 40))
+        QScroller.grabGesture(self.list.viewport(), QScroller.LeftMouseButtonGesture)
+        self.list.setVerticalScrollMode(self.list.ScrollPerPixel)
+        ly.addWidget(self.list, 3, 1, 4, 2)
         
-        new = QPushButton("\nZurück\n")
+        new = QPushButton("\n\n")
         new.clicked.connect(self.back)
         new.setFont(QFont("Macondo", 20))
+        new.setIcon(QIcon("back.png"))
+        new.setIconSize(QSize(50, 50))
         new.setStyleSheet("""*{
                                              font-weight: bold;
-                                             border: 5px solid #34dbeb;
-                                             border-radius: 30px;
+                                             border: None;
                                              padding: -25px;
                                              }
-                                             *:hover{
-                                             background: #34dbeb;
-                                             }
                                              """)
-        ly.addWidget(new, 0, 0, 1, 0)
+        ly.addWidget(new, 1, 1)
+        ly.addWidget(QLabel(""), 1, 2)
         
         self.update()
         
@@ -206,7 +266,11 @@ class Ranking(QWidget):
     	    return int("-" + list['spamscore'])
         all_items = sorted(all_items, key=sort_by_key)
         for item in all_items:
-            self.list.addItem(item["key"] + " (" + item["spamscore"] + ")")
+            deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+            users = deta.Base("spamchat")
+            user = users.get(item["key"])
+            ppdata = str(user["profilepic"])
+            self.list.addItem(QListWidgetItem(QIcon(QPixmap(profilepic.getqt(profilepic.getpp(ppdata)))), item["key"] + " (" + item["spamscore"] + ")"))
                                             
 class Server(QWidget):
     def __init__(self, main, parent=None):
@@ -276,6 +340,8 @@ class Server(QWidget):
             main.stack.setCurrentIndex(0)
         
         self.listWidget = QListWidget()
+        QScroller.grabGesture(self.listWidget.viewport(), QScroller.LeftMouseButtonGesture)
+        self.listWidget.setVerticalScrollMode(self.listWidget.ScrollPerPixel)
         if os.path.isfile("server.sc"):
             datei = open("server.sc")
             server = datei.read()
@@ -1106,7 +1172,7 @@ class Register(QWidget):
         try:
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             users = deta.Base("spamchat")
-            users.insert({"key": us, "id": id, "level": "0", "spamscore": "0"})
+            users.insert({"key": us, "id": id, "level": "0", "spamscore": "0", "profilepic": profilepic.generatepp()})
             MessageDialog("Fertig", "Fertig! Du kannst jetzt Nachrichten senden. Deine ID ist: " + str(id))
             rigi = 1
         except:
