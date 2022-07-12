@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, random, os, time, math
+import sys, random, os, time, math, re, shutil
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -8,6 +8,8 @@ from deta import Deta
 from functools import partial
 from PIL import Image, ImageDraw
 from PIL.ImageQt import ImageQt
+import urllib.request
+from datetime import datetime
 
 USER_ME = 0
 USER_THEM = 1
@@ -25,6 +27,8 @@ class main(QWidget):
         self.stack = QStackedWidget()
         self.chatwidget = MainWindow(self)
         self.serverwidget = Server(self)
+        self.profilewidget = Profile(self)
+        
         self.stack.addWidget(Register(self))
         self.stack.addWidget(self.chatwidget)
         self.stack.addWidget(self.serverwidget)
@@ -32,6 +36,10 @@ class main(QWidget):
         self.stack.addWidget(QTicTacToe(self))
         self.stack.addWidget(PreLoader(self))
         self.stack.addWidget(Ranking(self))
+        self.stack.addWidget(EditPic(self))
+        self.stack.addWidget(self.profilewidget)
+        self.stack.addWidget(Desc(self))
+        self.stack.addWidget(GuessNumber(self))
         
         #self.stack.setCurrentIndex(0)
         self.preload()
@@ -46,11 +54,26 @@ class main(QWidget):
         self.setLayout(layout)
         self.show()
         
+    def guess(self):
+        self.stack.setCurrentIndex(10)
+        
+    def upser(self):
+        self.serverwidget.checkserver()
+        
+    def desc(self):
+        self.stack.setCurrentIndex(9)
+        
+    def profile(self, user):
+        self.profilewidget.update(user)
+        self.stack.setCurrentIndex(8)
+        
+    def edit(self):
+        self.stack.setCurrentIndex(7)
+        
     def reg(self):
         self.stack.setCurrentIndex(0)
         
     def closeEvent(self, event):
-        MessageDialog("Beenden", "Spamchat wird beendet.")
         event.accept()
         
     def preload(self):
@@ -103,14 +126,327 @@ class main(QWidget):
                     pass
         else:
             self.reg()
+            
+class RedButton(QPushButton):
+    def __init__(self, main, source):
+        super().__init__()
+        
+        self.source = source
+        self.main = main
+        
+        self.setIcon(QIcon("btn.png"))
+        self.setIconSize(QSize(100, 100))
+        self.setFixedSize(QSize(100, 100))
+        self.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: None;
+                                             padding: -25px;
+                                             }
+                                             """)
+                                             
+    def mousePressEvent(self, e):
+        self.setIcon(QIcon("btn-prsd.png"))
+        
+    def mouseReleaseEvent(self, e):
+        self.setIcon(QIcon("btn.png"))
+        #MessageDialog("__^", str(self.source))
+        try:
+            datei = open("user.sc", "r")
+            self.user = datei.read()
+            datei.close()
+        except:
+            self.user = "Nobody"
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(self.user)
+        try:
+            btns = str(user["btns"])
+        except:
+            btns = "0"
+        #MessageDialog("/", str(list(btns)))
+        tt = False
+        l = False
+        if not str(self.source) in list(btns):
+            if int(datetime.today().strftime('%Y%m%d')) > 20220720:
+                tt = True
+            if not tt:
+                btns = str(btns) + str(self.source)
+                users = deta.Base("spamchat")
+                user = users.get(self.user)
+                users.update({"btns": btns}, self.user)
+                MessageDialog("Herzlichen Glückwunsch!", "Herzlichen Glückwunsch! Du hast einen Roten Knopf gefunden!")
+            else:
+                MessageDialog("Fehler", "Das Event wurde am 20.07.2022 beendet.")
+        else:
+            if int(datetime.today().strftime('%Y%m%d')) > 20220720:
+                tt = True
+            if tt:
+                MessageDialog("Fehler", "Das Event wurde am 20.07.2022 beendet.")
+            elif "1" in list(btns) and "2" in list(btns) and "3" in list(btns) and "4" in list(btns) and "5" in list(btns):
+                MessageDialog("Herzlichen Glückwunsch!", "Du hast schon alle roten Knöpfe gefunden.")
+                l = True
+            else:
+                MessageDialog("Fehler", "Du hast diesen Roten Knopf schon gedrückt.")
+            
+        if "1" in list(btns) and "2" in list(btns) and "3" in list(btns) and "4" in list(btns) and "5" in list(btns) and not l and not tt:
+            MessageDialog("Herzlichen Glückwunsch!", "Herzlichen Glückwunsch!!! Du hast alle roten Knöpfe gefunden!")
+            MessageDialog("Herzlichen Glückwunsch!", "Du findest jetzt einen neuen Server in der Server-Liste")
+            datei = open("server.sc", "a")
+            datei.write("%ghg%" + "Zahlen-Raten")
+            datei.close()
+            main.upser(self.main)
                     
 class QLabelclick(QLabel):
     def __init__(self, main):
         super().__init__()
         self.clicked=pyqtSignal()
         self.main = main
+        """
+    def mouseMoveEvent(self, e):
+        mimeData = QMimeData()
+        drag = QDrag(self)
+        drag.setPixmap(QPixmap("logo.png").scaled(150, 150))
+        drag.setMimeData(mimeData)
+        drag.setHotSpot(e.pos())
+        dropAction = drag.exec_(Qt.MoveAction)
+        """
+        
     def mouseReleaseEvent(self, event):
         main.maze(self.main)
+    
+class GuessNumber(QWidget):
+    def __init__(self, main, parent=None):
+        super().__init__(parent)
+
+        # Layout the UI
+        l = QGridLayout()
+        
+        self.main = main
+            
+        back = QPushButton("\n\n")
+        back.clicked.connect(main.chat)
+        back.setFont(QFont("Macondo", 20))
+        back.setIcon(QIcon("back.png"))
+        back.setIconSize(QSize(50, 50))
+        back.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: None;
+                                             padding: -25px;
+                                             }
+                                             """)
+        
+        
+        
+        self.message_input = QLineEdit()
+        self.message_input.setFont(QFont("Macondo", 20))
+        self.message_input.setPlaceholderText("Nachricht")
+
+        # Buttons for from/to messages.
+        self.btn1 = QPushButton("\n\n")
+        self.btn1.setIcon(QIcon("send.png"))
+        self.btn1.setIconSize(QSize(50, 50))
+        
+        self.acse = QLabel("Zahlen-Raten")
+        self.acse.setAlignment(Qt.AlignCenter)
+        self.acse.setFont(QFont("Macondo", 30))
+
+        self.messages = QListView()
+        self.messages.setFont(QFont("Macondo", 20))
+        QScroller.grabGesture(self.messages.viewport(), QScroller.LeftMouseButtonGesture)
+        self.messages.setVerticalScrollMode(self.messages.ScrollPerPixel)
+        # Use our delegate to draw items in this view.
+        self.messages.setItemDelegate(MessageDelegate())
+
+        self.model = MessageModel()
+        self.messages.setModel(self.model)
+
+        self.btn1.pressed.connect(self.send)
+        self.btn1.setFont(QFont("Macondo", 20))
+        self.btn1.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: None;
+                                             padding: -25px;
+                                             }
+                                             """)
+        
+        l.addWidget(back, 0, 0)
+        l.addWidget(self.acse, 0, 1)
+        l.addWidget(self.messages, 1, 0, 1, 3)
+        l.addWidget(self.message_input, 2, 0, 2, 2)
+        l.addWidget(self.btn1, 2, 2)
+
+        self.setLayout(l)
+        self.setup()
+        
+    def setup(self):
+        self.rnd = random.randint(0, 1000)
+        self.trs = 0
+        self.model.add_message(USER_BOT, "(SpamBot): Ich habe mit eine Zahl zwischen 0 und 1000 ausgesucht. Dein Ziel ist es, diese Zahl zu erraten.")
+        self.model.add_message(USER_BOT, "(SpamBot): Deine Zahl:")
+        
+    def send(self):
+        nr = self.message_input.text()
+        self.message_input.setText("")
+        try:
+            datei = open("user.sc", "r")
+            self.user = datei.read()
+            datei.close()
+        except:
+            self.user = "none"
+        self.model.add_message(USER_ME, "(" + self.user + "): " + nr)
+        try:
+            nr = int(nr)
+            if nr == self.rnd:
+                self.model.add_message(USER_BOT, "(SpamBot): Richtig!!! Du hast " + str(self.trs) + " Versuche gebraucht, um meine Zahl zu erraten.")
+                self.model.add_message(USER_BOT, "(SpamBot): Willst do noch einmal spielen?")
+                self.model.add_message(USER_ME, "(" + self.user + "): Ja")
+                self.model.add_message(USER_BOT, "(SpamBot): Ok")
+                self.setup()
+            elif nr > self.rnd:
+                self.model.add_message(USER_BOT, "(SpamBot): Meine Zahl ist kleiner als " + str(nr))
+                self.trs += 1
+            else:
+                self.model.add_message(USER_BOT, "(SpamBot): Meine Zahl ist größer als " + str(nr))
+                self.trs += 1
+        except:
+            self.model.add_message(USER_BOT, "(SpamBot): Du sollst eine Zahl eingeben!!!")
+        
+class Desc(QWidget):
+    def __init__(self, main, parent=None):
+        super().__init__(parent)
+        
+        ly = QGridLayout()
+        self.main = main
+        
+        self.tx = QTextEdit()
+        self.tx.setPlaceholderText("Hier kannst du deine Beschreibung ändern. Du kannst auch Markdown verwenden.")
+        self.tx.textChanged.connect(self.prev)
+        
+        new = QPushButton("\n\n")
+        new.clicked.connect(main.chat)
+        new.setFont(QFont("Macondo", 20))
+        new.setIcon(QIcon("back.png"))
+        new.setIconSize(QSize(50, 50))
+        new.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: None;
+                                             padding: -25px;
+                                             }
+                                             """)
+        
+        self.tx2 = QTextEdit()
+        self.tx2.setReadOnly(True)
+        self.tx2.setPlaceholderText("Vorschau")
+        
+        fertig = QPushButton("fertig")
+        fertig.setFont(QFont("Macondo", 20))
+        fertig.clicked.connect(self.finish)
+        fertig.setStyleSheet("*{font-weight: bold; border: 5px solid #34dbeb; border-radius: 23px; } *:hover{  background: #34dbeb; }")
+        
+        ly.addWidget(new, 0, 1)
+        ly.addWidget(RedButton(self.main, 3), 0, 2)
+        ly.addWidget(self.tx, 1, 1)
+        ly.addWidget(self.tx2, 1, 2)
+        ly.addWidget(fertig, 2, 1, 2, 2)
+        
+        try:
+            da = open("user.sc", "r")
+            us = da.read()
+            da.close()
+        except:
+            us = "nobody"
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(us)
+        try:
+            ppdata = str(user["des"])
+        except:
+            ppdata = "none"
+        self.tx.setText(ppdata)
+        
+        self.setLayout(ly)
+        
+    def finish(self):
+        datei = open("user.sc", "r")
+        self.user = datei.read()
+        datei.close()
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(self.user)
+        spc = str(user["des"])
+        users.update({"des": self.tx.toPlainText()}, self.user)
+        MessageDialog("Fertig", "Deine Beschreibung wurde gespeichert.")
+        
+    def prev(self):
+        self.tx2.setMarkdown(self.tx.toPlainText())
+        
+class Profile(QWidget):
+    def __init__(self, main, parent=None):
+        super().__init__(parent)
+        
+        ly = QGridLayout()
+        self.main = main
+        
+        self.pp = QLabel()
+        self.pp.setAlignment(Qt.AlignCenter)
+        
+        self.lb = QLabel("none")
+        self.lb.setFont(QFont("Macondo", 50))
+        self.lb.setAlignment(Qt.AlignCenter)
+        
+        self.des = QTextEdit()
+        self.des.setAlignment(Qt.AlignCenter)
+        self.des.setFont(QFont("Macondo", 20))
+        self.des.setReadOnly(True)
+        self.des.setStyleSheet("background: rgba(0,0,0,0%)")
+        
+        new = QPushButton("\n\n")
+        new.clicked.connect(main.rank)
+        new.setFont(QFont("Macondo", 20))
+        new.setIcon(QIcon("back.png"))
+        new.setIconSize(QSize(50, 50))
+        new.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: None;
+                                             padding: -25px;
+                                             }
+                                             """)
+        
+        ly.addWidget(new, 0, 1)
+        ly.addWidget(self.pp, 1, 1)
+        ly.addWidget(self.lb, 2, 1)
+        ly.addWidget(self.des, 3, 1)
+        ly.addWidget(RedButton(self.main, 1), 5, 5)
+        self.setLayout(ly)
+        
+    def update(self, user):
+        self.lb.setText(user)
+        self.pp.setPixmap(QPixmap(profilepic.getqt(profilepic.getpp(profilepic.getdata(user)))).scaled(300, 300))
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(user)
+        data = str(user["des"])
+        
+        txt2 = data.split(" ")
+        links = []
+        for txt in txt2:
+            if re.findall('\!\[.*\]\(.*\)', txt):
+                it = re.findall('\!\[.*\]\(.*\)', txt)[0]
+                it = re.findall('\(.*\)', it)[0]
+                it = it[:-1]
+                res = it[1:]
+                links.append(res)
+        #print(links)
+        if not os.path.exists("tmp"):
+            os.makedirs("tmp")
+        else:
+            shutil.rmtree("tmp")
+            os.makedirs("tmp")
+        for url in links:
+            data = data.replace(url, "tmp/" + url.split("/")[-1])
+            urllib.request.urlretrieve(url, "tmp/" + url.split("/")[-1])
+        
+        self.des.setMarkdown(data)
         
 class profilepic():
     def generatepp():
@@ -138,6 +474,13 @@ class profilepic():
         alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
         im.putalpha(alpha)
         return im
+        
+    def getdata(username):
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(username)
+        ppdata = str(user["profilepic"])
+        return ppdata
     
     def getpp(edgs):
         w, h = 1000, 1000
@@ -178,6 +521,11 @@ class PreLoader(QWidget):
         self.main = main
         gr = QGridLayout()
         gr.addWidget(logo, 1, 1)
+        
+        rnd = random.randint(0, 10)
+        if rnd == 5:
+            RickDialog()
+        
         effect = QGraphicsOpacityEffect(logo)
         logo.setGraphicsEffect(effect)
         self.setLayout(gr)
@@ -188,7 +536,7 @@ class PreLoader(QWidget):
         self.anim_2.start()
         
 class RickDialog(QDialog):
-    def __init__(self, v, f):
+    def __init__(self):
         super().__init__()
         self.setWindowTitle("Rick-Roll")
         QBtn = QDialogButtonBox.Ok
@@ -196,13 +544,28 @@ class RickDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.setFont(QFont("Macondo", 20))
         self.layout = QVBoxLayout()
-        lb = QLabel(f + " von " + v)
         rr = QLabel()
         self.movie = QMovie("rickroll.gif")
         rr.setMovie(self.movie)
         self.movie.start()
-        self.layout.addWidget(lb)
         self.layout.addWidget(rr)
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
+        self.exec()
+        
+class BtnsDialog(QDialog):
+    def __init__(self, main):
+        super().__init__()
+        
+        self.setWindowTitle("Neues Event")
+        QBtn = QDialogButtonBox.Ok
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.setFont(QFont("Macondo", 20))
+        self.layout = QVBoxLayout()
+        message = QLabel("Das Red-Button-Event ist gestartet! In Spamchat sind insgesamt fünf rote Knöpfe versteckt.  Findest du sie alle?")
+        self.layout.addWidget(message)
+        self.layout.addWidget(RedButton(main, 4))
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
         self.exec()
@@ -234,6 +597,7 @@ class Ranking(QWidget):
         self.list.setFont(QFont("Macondo", 40))
         QScroller.grabGesture(self.list.viewport(), QScroller.LeftMouseButtonGesture)
         self.list.setVerticalScrollMode(self.list.ScrollPerPixel)
+        self.list.itemClicked.connect(self.profile)
         ly.addWidget(self.list, 3, 1, 4, 2)
         
         new = QPushButton("\n\n")
@@ -252,26 +616,130 @@ class Ranking(QWidget):
         
         self.update()
         
+        self.tm = QTimer()
+        self.tm.timeout.connect(self.update)
+        self.tm.start(10000)
+        
         self.setLayout(ly)
         
     def back(self):
         main.chat(self.main)
         
+    def profile(self, user):
+        us = user.text()
+        while  True:
+            us = us[:-1]
+            if us[-1] == " ":
+                us = us[:-1]
+                #MessageDialog("/", us)
+                break
+            else:
+                pass
+        main.profile(self.main, us)
+        
     def update(self):
+        self.list.clear()
         deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
         chats = deta.Base("spamchat")
         res = chats.fetch()
         all_items = res.items
         def sort_by_key(list):
-    	    return int("-" + list['spamscore'])
+            return int("-" + list['spamscore'])
         all_items = sorted(all_items, key=sort_by_key)
         for item in all_items:
-            deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
-            users = deta.Base("spamchat")
-            user = users.get(item["key"])
-            ppdata = str(user["profilepic"])
-            self.list.addItem(QListWidgetItem(QIcon(QPixmap(profilepic.getqt(profilepic.getpp(ppdata)))), item["key"] + " (" + item["spamscore"] + ")"))
-                                            
+            self.list.addItem(QListWidgetItem(QIcon(QPixmap(profilepic.getqt(profilepic.getpp(profilepic.getdata(item["key"]))))), item["key"] + " (" + item["spamscore"] + ")"))
+            
+class EditPic(QWidget):
+    def __init__(self, main, parent=None):
+        super().__init__(parent)
+        
+        ly = QGridLayout()
+        self.main = main
+        
+        self.pixel = []
+        self.bts = []
+        
+        #MessageDialog("zzj", str(col.currentColor().name()))
+        self.color = "#00ff00"
+        wd = QWidget()
+        ld = QGridLayout()
+        for x in range(1, 11):
+            for y in range(1, 11):
+                bt = QPushButton()
+                bt.setCheckable(True)
+                bt.setFixedSize(100, 100)
+                bt.clicked.connect(partial(self.click, x, y, bt))
+                bt.setStyleSheet("QPushButton { background-color: grey; margin-left: 0px }")
+                ld.addWidget(bt, x, y)
+                
+        wd.setLayout(ld)
+        
+        fertig = QPushButton("fertig")
+        fertig.setFixedHeight(65)
+        fertig.setFont(QFont("Macondo", 20))
+        fertig.clicked.connect(self.finish)
+        fertig.setStyleSheet("*{font-weight: bold; border: 5px solid #34dbeb; border-radius: 30px; } *:hover{  background: #34dbeb; }")
+        
+        coch = QPushButton("Farbe ändern")
+        coch.setFixedHeight(65)
+        coch.setFont(QFont("Macondo", 20))
+        coch.clicked.connect(self.choose)
+        coch.setStyleSheet("*{font-weight: bold; border: 5px solid #34dbeb; border-radius: 30px; } *:hover{  background: #34dbeb; }")
+        
+        back = QPushButton("\n\n")
+        back.clicked.connect(main.chat)
+        back.setFont(QFont("Macondo", 20))
+        back.setIcon(QIcon("back.png"))
+        back.setIconSize(QSize(50, 50))
+        back.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: None;
+                                             padding: -25px;
+                                             }
+                                             """)
+        
+        ly.addWidget(coch, 3, 0)
+        ly.addWidget(fertig, 3, 1)
+        ly.addWidget(back, 0, 0)
+        ly.addWidget(wd, 1, 0, 2, 0)
+                
+        self.setLayout(ly)
+        
+    def choose(self):
+        col = QColorDialog()
+        col.exec()
+        self.color = str(col.currentColor().name())
+        for button in self.bts:
+            button.setStyleSheet("background-color : " + self.color)
+        
+    def finish(self):
+        edgs = self.color
+        for item in self.pixel:
+            edgs =  edgs + "%ghg%" + item
+        #MessageDialog("/_", edgs)
+        datei = open("user.sc", "r")
+        self.user = datei.read()
+        datei.close()
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(self.user)
+        spc = str(user["profilepic"])
+        users.update({"profilepic": edgs}, self.user)
+        MessageDialog("Fertig", "Dein Profilbild wurde gespeichert.")
+        
+    def click(self, x, y, button):
+        #MessageDialog("ghj", str(x+y))
+        if str(y) + ", " + str(x) in self.pixel:
+            button.setStyleSheet("background-color : gray")
+            self.pixel.remove(str(y) + ", " + str(x))
+            self.bts.remove(button)
+            #MessageDialog("iuiu", str(self.pixel))
+        else:
+            button.setStyleSheet("background-color : " + self.color)
+            self.pixel.append(str(y) + ", " + str(x))
+            self.bts.append(button)
+            #MessageDialog("iuiu", str(self.pixel))
+            
 class Server(QWidget):
     def __init__(self, main, parent=None):
         super().__init__(parent)
@@ -279,7 +747,23 @@ class Server(QWidget):
         ly = QGridLayout()
         self.main = main
         
-        rang = QPushButton("\nRangliste\n")
+        try:
+            datei = open("user.sc", "r")
+            self.user = datei.read()
+            datei.close()
+        except:
+            self.user = "Nobody"
+        deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
+        users = deta.Base("spamchat")
+        user = users.get(self.user)
+        try:
+            btns = str(user["btns"])
+        except:
+            btns = "0"
+            BtnsDialog(self.main)
+        
+        rang = QPushButton("Rangliste")
+        rang.setFixedHeight(65)
         rang.clicked.connect(self.rank)
         rang.setFont(QFont("Macondo", 20))
         rang.setStyleSheet("""*{
@@ -293,7 +777,38 @@ class Server(QWidget):
                                              }
                                              """)
         
-        new = QPushButton("\nServer erstellen\n")
+        edit = QPushButton("Profilbild bearbeiten")
+        edit.setFixedHeight(65)
+        edit.clicked.connect(main.edit)
+        edit.setFont(QFont("Macondo", 20))
+        edit.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: 5px solid #34dbeb;
+                                             border-radius: 30px;
+                                             padding: -25px;
+                                             }
+                                             *:hover{
+                                             background: #34dbeb;
+                                             }
+                                             """)
+                                             
+        des = QPushButton("Beschreibung bearbeiten")
+        des.setFixedHeight(65)
+        des.clicked.connect(main.desc)
+        des.setFont(QFont("Macondo", 20))
+        des.setStyleSheet("""*{
+                                             font-weight: bold;
+                                             border: 5px solid #34dbeb;
+                                             border-radius: 30px;
+                                             padding: -25px;
+                                             }
+                                             *:hover{
+                                             background: #34dbeb;
+                                             }
+                                             """)
+        
+        new = QPushButton("Server erstellen")
+        new.setFixedHeight(65)
         new.clicked.connect(self.newserver)
         new.setFont(QFont("Macondo", 20))
         new.setStyleSheet("""*{
@@ -307,7 +822,8 @@ class Server(QWidget):
                                              }
                                              """)
         
-        join = QPushButton("\nServer beitreten\n")
+        join = QPushButton("Server beitreten")
+        join.setFixedHeight(65)
         join.clicked.connect(self.joinserver)
         join.setFont(QFont("Macondo", 20))
         join.setStyleSheet("""*{
@@ -321,12 +837,12 @@ class Server(QWidget):
                                              }
                                              """)
                                              
-        logo = QLabelclick(self.main)
-        logo.setPixmap(QPixmap("logo.png").scaled(150, 150))
-        logo.setAlignment(Qt.AlignCenter)
+        self.logo = QLabelclick(self.main)
+        self.logo.setPixmap(QPixmap("logo.png").scaled(150, 150))
+        self.logo.setAlignment(Qt.AlignCenter)
         
-        effect = QGraphicsOpacityEffect(logo)
-        logo.setGraphicsEffect(effect)
+        effect = QGraphicsOpacityEffect(self.logo)
+        self.logo.setGraphicsEffect(effect)
         self.anim = QPropertyAnimation(effect, b"opacity")
         self.anim.setStartValue(0)
         self.anim.setEndValue(1)
@@ -359,7 +875,7 @@ class Server(QWidget):
         self.listWidget.setStyleSheet("""QListWidget::item{
                                              font-weight: bold;
                                              border: 5px solid #34dbeb;
-                                             border-radius: 25px;
+                                             border-radius: 30px;
                                              margin: 15px;
                                              }
                                              QListWidget::item:hover{
@@ -378,11 +894,22 @@ class Server(QWidget):
         self.listWidget.itemClicked.connect(self.connectserver)
         
         ly.addWidget(new, 0, 0)
-        ly.addWidget(logo, 0, 1)
+        ly.addWidget(self.logo, 0, 1)
         ly.addWidget(join, 0, 2)
         ly.addWidget(self.listWidget, 1, 0, 1, 3)
         ly.addWidget(rang, 2, 0)
+        ly.addWidget(edit, 2, 1)
+        ly.addWidget(des, 2, 2)
         self.setLayout(ly)
+        
+    def dragEnterEvent(self, e):
+        e.accept()
+        
+    def dropEvent(self, e):
+        position = e.pos()
+        self.logo.move(position)
+        e.setDropAction(Qt.MoveAction)
+        e.accept()
         
     def rank(self):
         main.rank(self.main)
@@ -465,11 +992,11 @@ class Server(QWidget):
                 try:
                     content = chat.read()
                     chat.close()
-                    chats.put(item + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
+                    chats.put(item + ".sc", content + b"(" + b"SpamBot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
                 except:
                     content = b""
                     print(content)
-                    chats.put(item + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
+                    chats.put(item + ".sc", content + b"(" + b"SpamBot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
                 chats = deta.Drive("spamchats-info")
                 chat = chats.get(item + ".sc")
                 try:
@@ -512,11 +1039,11 @@ class Server(QWidget):
                     try:
                         content = chat.read()
                         chat.close()
-                        chats.put(name + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
+                        chats.put(name + ".sc", content + b"(" + b"SpamBot" + b"): " + self.user.encode('utf_8') + b" ist dem Server beigetreten." + b"%ghg%")
                     except:
                         content = b""
                         print(content)
-                        chats.put(name + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
+                        chats.put(name + ".sc", content + b"(" + b"SpamBot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
                     chats = deta.Drive("spamchats-info")
                     chat = chats.get(name + ".sc")
                     try:
@@ -531,7 +1058,7 @@ class Server(QWidget):
                 else:
                     MessageDialog("ERROR", "Falscher Server-Name oder ID.")
             except:
-                MessageDialog("ERROR", "Du konntest dem Server nicht beitreten")
+                MessageDialog("ERROR", "Der Server existiert nicht!")
         
     def newserver(self):
         try:
@@ -557,7 +1084,7 @@ class Server(QWidget):
                 
                 content = b""
                 print(content)
-                chats.put(text + ".sc", content + b"(" + b"spambot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
+                chats.put(text + ".sc", content + b"(" + b"SpamBot" + b"): " + self.user.encode('utf_8') + b" hat den Server erstellt." + b"%ghg%")
             
                 chats = deta.Drive("spamchats-info")
                 chat = chats.get(text + ".sc")
@@ -618,15 +1145,17 @@ class Server(QWidget):
         except:
             self.user = "none"
         serv = item.text()
-        MessageDialog("Info", "verbinden mit " + serv + "...")
         try:
             os.remove("actu.sc")
         except:
             pass
-        datei = open("actu.sc", "a")
-        datei.write(serv + ".sc")
-        datei.close()
-        main.connc(self.main)
+        if serv == "Zahlen-Raten":
+            main.guess(self.main)
+        else:
+            datei = open("actu.sc", "a")
+            datei.write(serv + ".sc")
+            datei.close()
+            main.connc(self.main)
         
 class TicTacToe:
     class Tile:
@@ -862,17 +1391,15 @@ class QTicTacToe(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
         ticTaclayout = QGridLayout()
-        back = QPushButton("\nzurück\n")
+        back = QPushButton("\n\n")
         back.clicked.connect(partial(main.chat, self.main))
         back.setFont(QFont("Macondo", 20))
+        back.setIcon(QIcon("back.png"))
+        back.setIconSize(QSize(50, 50))
         back.setStyleSheet("""*{
                                              font-weight: bold;
-                                             border: 5px solid #34dbeb;
-                                             border-radius: 30px;
+                                             border: None;
                                              padding: -25px;
-                                             }
-                                             *:hover{
-                                             background: #34dbeb;
                                              }
                                              """)
         ticTaclayout.addWidget(back, 0, 1)
@@ -943,17 +1470,15 @@ class Maze(QWidget):
         self.paintStep = 0
         self.paintOffset = 0
         
-        back = QPushButton("\nzurück\n")
+        back = QPushButton("\n\n")
         back.clicked.connect(main.chat)
         back.setFont(QFont("Macondo", 20))
+        back.setIcon(QIcon("back.png"))
+        back.setIconSize(QSize(50, 50))
         back.setStyleSheet("""*{
                                              font-weight: bold;
-                                             border: 5px solid #34dbeb;
-                                             border-radius: 30px;
+                                             border: None;
                                              padding: -25px;
-                                             }
-                                             *:hover{
-                                             background: #34dbeb;
                                              }
                                              """)
                                              
@@ -981,6 +1506,7 @@ class Maze(QWidget):
         gr.addWidget(QLabel(), 0, 3)
         gr.addWidget(QLabel(), 0, 4)
         gr.addWidget(self.lv, 0, 5)
+        gr.addWidget(RedButton(self.main, 2), 2, 0)
         gr.addWidget(QLabel(), 1, 1)
         self.setLayout(gr)
 
@@ -1172,7 +1698,7 @@ class Register(QWidget):
         try:
             deta = Deta("a0nx7pgk_CAsXSD5UjJsWT8xj9nPSAb14xduJ1fUR")
             users = deta.Base("spamchat")
-            users.insert({"key": us, "id": id, "level": "0", "spamscore": "0", "profilepic": profilepic.generatepp()})
+            users.insert({"key": us, "id": id, "level": "0", "spamscore": "0", "profilepic": profilepic.generatepp(), "des": "Hi! Ich benutze Spamchat"})
             MessageDialog("Fertig", "Fertig! Du kannst jetzt Nachrichten senden. Deine ID ist: " + str(id))
             rigi = 1
         except:
@@ -1187,7 +1713,7 @@ class Register(QWidget):
             dateieiei.close()
             main.chat(self.main)
         else:
-        	pass
+            pass
 
 
 class MessageDelegate(QStyledItemDelegate):
@@ -1263,7 +1789,7 @@ class MessageModel(QAbstractListModel):
             self.layoutChanged.emit()
             
     def del_message(self):
-    	self.messages = []
+        self.messages = []
 
 class MainWindow(QMainWindow):
     def __init__(self, main):
@@ -1357,9 +1883,10 @@ class MainWindow(QMainWindow):
         l.addWidget(back, 0, 0)
         l.addWidget(self.acse, 0, 1)
         l.addWidget(self.sppc, 0, 3)
-        l.addWidget(self.messages, 1, 0, 1, 4)
+        l.addWidget(self.messages, 1, 0, 1, 5)
         l.addWidget(self.message_input, 2, 0, 2, 3)
         l.addWidget(self.btn1, 2, 3)
+        l.addWidget(RedButton(self.main, 5), 0, 4)
 
         self.w = QWidget()
         self.w.setLayout(l)
@@ -1530,7 +2057,7 @@ class MainWindow(QMainWindow):
         for item in listofmsgnew:
             indx += 1
             print(item.decode('utf_8'))
-            if item.decode('utf_8').startswith("(spambot)"):
+            if item.decode('utf_8').startswith("(SpamBot)"):
                 self.model.add_message(USER_BOT, item.decode('utf_8'))
             elif item.decode('utf_8').startswith("(" + self.user + ")"):
                 self.model.add_message(USER_ME, item.decode('utf_8'))
