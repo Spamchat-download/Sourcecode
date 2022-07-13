@@ -167,7 +167,7 @@ class RedButton(QPushButton):
         tt = False
         l = False
         if not str(self.source) in list(btns):
-            if int(datetime.today().strftime('%Y%m%d')) > 20220720:
+            if int(datetime.today().strftime('%Y%m%d')) > 20220727:
                 tt = True
             if not tt:
                 btns = str(btns) + str(self.source)
@@ -176,12 +176,12 @@ class RedButton(QPushButton):
                 users.update({"btns": btns}, self.user)
                 MessageDialog("Herzlichen Glückwunsch!", "Herzlichen Glückwunsch! Du hast einen Roten Knopf gefunden!")
             else:
-                MessageDialog("Fehler", "Das Event wurde am 20.07.2022 beendet.")
+                MessageDialog("Fehler", "Das Event wurde am 27.07.2022 beendet.")
         else:
-            if int(datetime.today().strftime('%Y%m%d')) > 20220720:
+            if int(datetime.today().strftime('%Y%m%d')) > 20220727:
                 tt = True
             if tt:
-                MessageDialog("Fehler", "Das Event wurde am 20.07.2022 beendet.")
+                MessageDialog("Fehler", "Das Event wurde am 27.07.2022 beendet.")
             elif "1" in list(btns) and "2" in list(btns) and "3" in list(btns) and "4" in list(btns) and "5" in list(btns):
                 MessageDialog("Herzlichen Glückwunsch!", "Du hast schon alle roten Knöpfe gefunden.")
                 l = True
@@ -563,7 +563,8 @@ class BtnsDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.setFont(QFont("Macondo", 20))
         self.layout = QVBoxLayout()
-        message = QLabel("Das Red-Button-Event ist gestartet! In Spamchat sind insgesamt fünf rote Knöpfe versteckt.  Findest du sie alle?")
+        message = QLabel("Das Red-Button-Event ist gestartet! In Spamchat sind insgesamt fünf rote Knöpfe versteckt.  Findest du sie alle? Du hast bis zum 27.07.2022 Zeit.")
+        message.setWordWrap(True)
         self.layout.addWidget(message)
         self.layout.addWidget(RedButton(main, 4))
         self.layout.addWidget(self.buttonBox)
@@ -580,6 +581,7 @@ class MessageDialog(QDialog):
         self.setFont(QFont("Macondo", 20))
         self.layout = QVBoxLayout()
         message = QLabel(msg)
+        message.setWordWrap(True)
         self.layout.addWidget(message)
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
